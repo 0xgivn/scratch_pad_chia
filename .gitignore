@@ -1,0 +1,16 @@
+# mac
+.DS_Store
+
+/target
+**/__pycache__/
+__pycache__/
+*.pyc
+uv.lock
+venv
+.venv
+tempfile.clsp.hex
+/dist/
+.github/.tmp
+
+#debug
+main.sym
