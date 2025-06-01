@@ -1,0 +1,76 @@
+; See chia/types/condition_opcodes.py
+
+(
+
+  ; Unavailable until after 2.0 hard fork
+  (defconst AGG_SIG_PARENT 43)
+  (defconst AGG_SIG_PUZZLE 44)
+  (defconst AGG_SIG_AMOUNT 45)
+  (defconst AGG_SIG_PUZZLE_AMOUNT 46)
+  (defconst AGG_SIG_PARENT_AMOUNT 47)
+  (defconst AGG_SIG_PARENT_PUZZLE 48)
+  ;
+
+  (defconst AGG_SIG_UNSAFE 49)
+  (defconst AGG_SIG_ME 50)
+
+  ; the conditions below reserve coin amounts and have to be accounted for in output totals
+
+  (defconst CREATE_COIN 51)
+  (defconst RESERVE_FEE 52)
+
+  ; the conditions below deal with announcements, for inter-coin communication
+
+  ; coin announcements
+  (defconst CREATE_COIN_ANNOUNCEMENT 60)
+  (defconst ASSERT_COIN_ANNOUNCEMENT 61)
+
+  ; puzzle announcements
+  (defconst CREATE_PUZZLE_ANNOUNCEMENT 62)
+  (defconst ASSERT_PUZZLE_ANNOUNCEMENT 63)
+
+  ; coin-id
+  (defconst ASSERT_CONCURRENT_SPEND 64)
+  ; puzzle-hash
+  (defconst ASSERT_CONCURRENT_PUZZLE 65)
+ ; mask message ...
+  (defconst SEND_MESSAGE 66)
+  (defconst RECEIVE_MESSAGE 67)
+
+  ; the conditions below let coins inquire about themselves
+
+  (defconst ASSERT_MY_COIN_ID 70)
+  (defconst ASSERT_MY_PARENT_ID 71)
+  (defconst ASSERT_MY_PUZZLE_HASH 72)
+  (defconst ASSERT_MY_AMOUNT 73)
+  (defconst ASSERT_MY_BIRTH_SECONDS 74)
+  (defconst ASSERT_MY_BIRTH_HEIGHT 75)
+  (defconst ASSERT_EPHEMERAL 76)
+
+  ; the conditions below ensure that we're "far enough" in the future
+
+  ; wall-clock time
+  (defconst ASSERT_SECONDS_RELATIVE 80)
+  (defconst ASSERT_SECONDS_ABSOLUTE 81)
+
+  ; block index
+  (defconst ASSERT_HEIGHT_RELATIVE 82)
+  (defconst ASSERT_HEIGHT_ABSOLUTE 83)
+
+  ; the conditions below ensure that we're "not too far" in the future
+
+  ; wall-clock time
+  (defconst ASSERT_BEFORE_SECONDS_RELATIVE 84)
+  (defconst ASSERT_BEFORE_SECONDS_ABSOLUTE 85)
+
+  ; block index
+  (defconst ASSERT_BEFORE_HEIGHT_RELATIVE 86)
+  (defconst ASSERT_BEFORE_HEIGHT_ABSOLUTE 87)
+
+  ; A condition that is always true and always ignore all arguments
+  (defconst REMARK 1)
+
+  ; A condition whose first argument specifies its cost, but is unkown otherwise
+  ; It's a place-holder for soft-forking in new conditions
+  (defconst SOFTFORK 90)
+)

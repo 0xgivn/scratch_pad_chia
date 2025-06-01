@@ -1,0 +1,10 @@
+; Using the dot here means that the inner solution is the rest of the parameters. This avoids the need to nest parentheses.
+(mod (PUBLIC_KEY INNER_PUZZLE . inner_solution)
+    (include condition_codes.clib)
+    (include sha256tree.clib)
+
+    (c
+        (list AGG_SIG_ME PUBLIC_KEY (sha256tree inner_solution))
+        (a INNER_PUZZLE inner_solution)
+    )
+)
