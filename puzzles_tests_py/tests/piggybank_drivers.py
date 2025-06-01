@@ -1,32 +1,18 @@
 from chia.types.blockchain_format.coin import Coin
-# from chia.types.blockchain_format.sized_bytes import bytes32
 from chia_rs.sized_bytes import bytes32
 from chia.types.blockchain_format.program import Program
 from chia.types.condition_opcodes import ConditionOpcode
-# from chia.util.ints import uint64
 from chia_rs.sized_ints import uint64
 from chia.util.hash import std_hash
 
 from clvm.casts import int_to_bytes
 
-# from cdv.util.load_clvm import load_clvm
-# from clvm_tools_rs import compile_clvm, start_clvm_program
-# Program.from_bytes should replace load_clvm
+from puzzles import load_puzzle
 
-# from chia_puzzles_py.programs import (
+def load_clvm(puzzle_name: str) -> Program:
+    return Program.from_bytes(bytes(load_puzzle(puzzle_name)))
 
-# )
-
-from clvm_tools.clvmc import compile_clvm
-
-path = compile_clvm(
-  "puzzles/piggybank.clsp", "puzzles/piggybank.clsp.hex", ["puzzles/include"])
-
-with open(path, 'r') as f:
-    hex_content = f.read().strip()
-program_bytes = bytes.fromhex(hex_content)
-
-PIGGYBANK_MOD = Program.from_bytes(program_bytes)
+PIGGYBANK_MOD = load_clvm("piggybank")
 
 def create_piggybank_puzzle(amount, cash_out_puzzlehash):
     return PIGGYBANK_MOD.curry(amount, cash_out_puzzlehash)

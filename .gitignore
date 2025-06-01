@@ -1,6 +1,7 @@
 # mac
 .DS_Store
 
+# py env
 /target
 **/__pycache__/
 __pycache__/
@@ -11,6 +12,9 @@ venv
 tempfile.clsp.hex
 /dist/
 .github/.tmp
+
+# chialisp build
+puzzles/*.hex
 
 #debug
 main.sym
