@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 import pytest_asyncio
-from typing import AsyncGenerator, Tuple
+from typing import AsyncGenerator, Tuple, Optional
 
 from chia.types.blockchain_format.coin import Coin
 from chia.types.spend_bundle import SpendBundle
@@ -15,7 +15,7 @@ from .piggybank_drivers import (
 )
 
 from cdv.test import setup as setup_test
-from cdv.test import Network, Wallet
+from cdv.test import Network, Wallet, CoinWrapper
 
 class TestStandardTransaction:
 
@@ -25,21 +25,23 @@ class TestStandardTransaction:
       await network.farm_block()
       yield network, alice, bob
 
-  async def make_and_spend_piggybank(self, network, alice, bob, CONTRIBUTION_AMOUNT):
+  async def make_and_spend_piggybank(self, network, alice: Wallet, bob: Wallet, CONTRIBUTION_AMOUNT):
     # Get alice wallet some money
     await network.farm_block(farmer=alice)
-
-    # Use 1 XCH to create our piggybank on the blockchain
-    piggybank_coin: Coin = await alice.launch_smart_coin(create_piggybank_puzzle(1_000_000_000_000, bob.puzzle_hash))
+    
+    # Use 1 XCH to create our piggybank on the blockchain; this creates a new coin on the network
+    piggybank_coin: CoinWrapper | None = await alice.launch_smart_coin(create_piggybank_puzzle(1_000_000_000_000, bob.puzzle_hash))
+    assert piggybank_coin is not None
 
     # Retrieve a coin that is at least the contribution amount
-    contribution_coin: Coin = await alice.choose_coin(CONTRIBUTION_AMOUNT)
+    contribution_coin: CoinWrapper | None = await alice.choose_coin(CONTRIBUTION_AMOUNT)
+    assert contribution_coin is not None
 
     # Spend of the piggy bank coin.
     piggybank_spend = await alice.spend_coin(
       piggybank_coin,
       pushtx=False, # don't immediately push the tx to the network
-      args=solution_for_piggybank(piggybank_coin, CONTRIBUTION_AMOUNT) # pass solution to puzzle
+      args=solution_for_piggybank(piggybank_coin.coin, CONTRIBUTION_AMOUNT) # pass solution to puzzle
     )
 
     # Sending change from the contribution to ourself
@@ -51,7 +53,7 @@ class TestStandardTransaction:
         # conditions emitted when supplying coins, order matters
         # this is like asserting for events
         [ConditionOpcode.CREATE_COIN, contribution_coin.puzzle_hash, (contribution_coin.amount - CONTRIBUTION_AMOUNT)],
-        piggybank_announcement_assertion(piggybank_coin, CONTRIBUTION_AMOUNT)
+        piggybank_announcement_assertion(piggybank_coin.coin, CONTRIBUTION_AMOUNT)
       ]
     )
 
