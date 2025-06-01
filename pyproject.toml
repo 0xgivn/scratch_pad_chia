@@ -7,11 +7,19 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [
-]
 
 [tool.poetry]
-packages = [{include = "scratch_pad_chia", from = "src"}]
+packages = [{include = "puzzles_tests_py"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+clvm-tools-rs = "^0.1.45"
+pytest = "^8.3.3"
+clvm-rs = "^0.2.3"
+chia-blockchain = "^2.5.3"
+chia-dev-tools = [{git="https://github.com/Chia-Network/chia-dev-tools"}]
+chialisp_loader = "^0.1.2"
+chialisp_builder = "^0.1.2"
 
 
 [build-system]
