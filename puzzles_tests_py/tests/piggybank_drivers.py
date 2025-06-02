@@ -7,10 +7,7 @@ from chia.util.hash import std_hash
 
 from clvm.casts import int_to_bytes
 
-from puzzles import load_puzzle
-
-def load_clvm(puzzle_name: str) -> Program:
-    return Program.from_bytes(bytes(load_puzzle(puzzle_name)))
+from .utils import load_clvm
 
 PIGGYBANK_MOD = load_clvm("piggybank")
 
