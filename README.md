@@ -16,12 +16,19 @@ Prerequisites:
 1. `poetry install`
 2. `eval $(poetry env activate)`
 
-To run a test file:
-`pytest puzzles_tests_py/tests/test_piggybank.py`
+# Testing
 
 To run all tests:
 `pytest puzzles_tests_py`
 
+To run a test file:
+`pytest puzzles_tests_py/tests/test_piggybank.py`
+
+To run a specific test from a file:
+`pytest puzzles_tests_py/tests/test_piggybank.py -k test_piggybank_contribution`
+
+> `cdv tests` is not available unless you have installed `chia-dev-tools`
+
 # Issues
 
-In the official [docs](https://chialisp.com/chialisp-primer/intro/#installation) you will be prompted to first install the [chia-dev-tools](https://github.com/Chia-Network/chia-dev-tools/?tab=readme-ov-file#install). This is just a collection of libraries wrapped in a convenient CLI. As of writing this, some of the dependencies don't build for arm64 architecture, which means you might not be able to follow the examples outlined later in the docs. You will still be able to install the dependencies in this project (or any other), build puzzles and run the tests.
+In the official [docs](https://chialisp.com/chialisp-primer/intro/#installation) you will be prompted to first install the [chia-dev-tools](https://github.com/Chia-Network/chia-dev-tools/?tab=readme-ov-file#install). This is just a collection of libraries wrapped in a convenient CLI. As of writing this, some of the dependencies don't build for arm64 architecture, which means you might not be able to follow the examples outlined in the official docs. You will still be able to install the dependencies in this project (or any other), build puzzles and run the tests.

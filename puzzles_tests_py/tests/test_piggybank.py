@@ -78,11 +78,63 @@ class TestStandardTransaction:
 
       filtered_result = list(filter(
         lambda addition:
-          (addition.amount == 501) and
+          (addition.amount == 501) and # puzzle contains 1 mojo on deploy + 500 contrib amount
           (addition.puzzle_hash == create_piggybank_puzzle(1_000_000_000_000, bob.puzzle_hash).get_tree_hash())
       ,result["additions"]
       ))
       assert len(filtered_result) == 1
+    finally:
+      # no close method, just pass
+      # await network.close()
+      pass
+
+  @pytest.mark.asyncio
+  async def test_piggybank_completion(self, setup):
+    network: Network
+    alice: Wallet
+    bob: Wallet
+    network, alice, bob = setup
+
+    try:
+      result = await self.make_and_spend_piggybank(network, alice, bob, 1_000_000_000_000)
+      print(f"Transaction result: {result}")  # Add this to see the full error
+
+      assert "error" not in result
+
+      # piggybank puzzle with amount 0
+      filtered_result = list(filter(
+        lambda addition:
+          (addition.amount == 0) and 
+          (addition.puzzle_hash == create_piggybank_puzzle(1_000_000_000_000, bob.puzzle_hash).get_tree_hash())
+      ,result["additions"]
+      ))
+      assert len(filtered_result) == 1
+
+      # bob's puzzle hash received the coins upon completion
+      filtered_result = list(filter(
+        lambda addition:
+          (addition.amount == 1_000_000_000_001) and
+          (addition.puzzle_hash == bob.puzzle_hash)
+      ,result["additions"]
+      ))
+      assert len(filtered_result) == 1
+    finally:
+      # no close method, just pass
+      # await network.close()
+      pass
+
+  @pytest.mark.asyncio
+  async def test_piggybank_stealing(self, setup):
+    network: Network
+    alice: Wallet
+    bob: Wallet
+    network, alice, bob = setup
+
+    try:
+      # negative amount tries to withdraw money
+      result = await self.make_and_spend_piggybank(network, alice, bob, -100)
+      assert "error" in result
+      assert "GENERATOR_RUNTIME_ERROR" in result["error"]
     finally:
       # no close method, just pass
       # await network.close()
