@@ -28,8 +28,7 @@ class TestPasswordPuzzle:
   async def test_password_puzzle(self, setup):
     network: Network
     alice: Wallet
-    bob: Wallet
-    network, alice, bob = setup
+    network, alice, _ = setup
     
     await network.farm_block(farmer=alice)
 
@@ -38,46 +37,34 @@ class TestPasswordPuzzle:
     PASSWORD_MOD = load_clvm("password")
     program = PASSWORD_MOD.curry(password_hash)
     puzzle_hash = program.get_tree_hash()
+    LOCK_AMOUNT = 1_000
 
     # now alice will spend some coins to turn it to password locked coin
-
-    # first fetch our unspent coin from blockchain
-    LOCK_AMOUNT = 1_000
-    password_spend = await alice.choose_coin(LOCK_AMOUNT)
-    assert password_spend is not None
-
-    # build solution for puzzle
-    solution = Program.to([
-      # Lock amount in puzzle
-      [ConditionOpcode.CREATE_COIN, puzzle_hash, LOCK_AMOUNT],
-      # the amount thats left, returned to alice
-      [ConditionOpcode.CREATE_COIN, alice.puzzle_hash, password_spend.amount - LOCK_AMOUNT]
-    ])
-
     old_balance = alice.balance()
-
-    # await alice.spend_coin(
-    #   spend_coin, 
-    #   pushtx=True,
-    #   args=solution
-    # )
-
-    # network.farm_block()
-    # assert old_balance == alice.balance() + LOCK_AMOUNT
-
-    password_coin: CoinWrapper | None = await alice.launch_smart_coin(program)
+    print(f'Alice\'s starting balance {old_balance}')
+    print(f'Password puzzle hash: {puzzle_hash}')
+    
+    print(f'--- Deploying the password puzzle ---')
+    password_coin: CoinWrapper | None = await alice.launch_smart_coin(program, amt=LOCK_AMOUNT)
     assert password_coin is not None
+    assert alice.balance() == old_balance - LOCK_AMOUNT
 
+    # The password puzzle contains this coin
+    print(f'password_coin.puzzle_hash: {password_coin.puzzle_hash}')
+    print(f'password_coin.amount: {password_coin.amount}')
+    
+    # alice provides a solution to the puzzle
     bundle = await alice.spend_coin(
       password_coin, 
       pushtx=False,
-      args=solution
+      args=Program.to(["hello", []])
     )
     
+    # coins are removed from the puzzle program
     result = await network.push_tx(SpendBundle.aggregate([bundle])) 
-    await network.farm_block()
-    print(f"result: {result}")
 
+    print(f"result: {result}")
+    assert old_balance == alice.balance() + LOCK_AMOUNT
 
 
 
