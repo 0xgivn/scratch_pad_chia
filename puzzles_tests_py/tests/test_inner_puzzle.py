@@ -19,7 +19,7 @@ from chia_rs import AugSchemeMPL, G1Element, G2Element, PrivateKey
 from .utils import load_clvm
 
 # Follows example from here: https://docs.chia.net/guides/crash-course/inner-puzzles/
-# To run: pytest puzzles_tests_py/tests/test_inner_puzzle.py -k test_inner_puzzle -s
+# To run: pytest puzzles_tests_py/tests/test_inner_puzzle.py -k test_inner_puzzle -s --disable-warnings
 class TestInnerPuzzle:
 
   @pytest_asyncio.fixture(scope='function')
@@ -115,4 +115,7 @@ class TestInnerPuzzle:
     spend_result = await alice.spend_coin(outer_puzzle_coin, pushtx=True, args=solution)
     assert spend_result.__dict__['error'] == None
     print(f'spend_result: {spend_result.__dict__}')
+
+    # alice was able to retrieve her coins after the REQUIRED_BLOCKS passed
+    assert alice.balance() == alice_balance_start
     

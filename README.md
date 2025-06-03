@@ -29,6 +29,7 @@ To run a specific test from a file:
 `pytest puzzles_tests_py/tests/test_piggybank.py -k test_piggybank_contribution`
 
 To output stdout logs add the `-s` flag.
+To omit warnings add `--disable-warnings`.
 
 > `cdv tests` is not available unless you have installed `chia-dev-tools`
 
