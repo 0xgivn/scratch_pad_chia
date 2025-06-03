@@ -33,6 +33,8 @@ To omit warnings add `--disable-warnings`.
 
 > `cdv tests` is not available unless you have installed `chia-dev-tools`
 
+You can access alternative blockchain querying API from `network.sim_client`.
+
 # Issues
 
 In the official [docs](https://chialisp.com/chialisp-primer/intro/#installation) (or [these](https://docs.chia.net/guides/crash-course/smart-coins/)) you will be prompted to first install the [chia-dev-tools](https://github.com/Chia-Network/chia-dev-tools/?tab=readme-ov-file#install). This is just a collection of libraries wrapped in a convenient CLI. As of writing this, some of the dependencies don't build for arm64 architecture, which means you might not be able to follow the examples outlined in the official docs. You will still be able to install the dependencies in this project (or any other), build puzzles and run the tests.
