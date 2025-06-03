@@ -1,9 +1,10 @@
-This repo is used to research and test chialisp code.
+This repo is used to research and test chialisp code. [Overview](https://www.youtube.com/watch?v=lh9spX6Qv8I) of the coin system, statefulness, puzzles.
 
 Examples are from:
 - [Chia Network playlist](https://www.youtube.com/playlist?list=PLmnzWPUjpmaGzFNq2PeMljHNrXGwj2TDY)
 - [chia_puzzles](https://github.com/Chia-Network/chia_puzzles)
 - [Password Puzzle](https://chialisp.com/chialisp-first-smart-coin/) - first smart coin
+- [Inner Puzzles](https://docs.chia.net/guides/crash-course/inner-puzzles/)
 - [Minimal smart coin example on Chia blockchain](https://gist.github.com/trepca/d6a0d7f761de7459643422eb73c435e6)
 - [Usage of primitives](https://github.com/Chia-Network/chia-blockchain/tree/main/chia/wallet/puzzles) in python - [singleton](https://github.com/Chia-Network/chia-blockchain/blob/main/chia/wallet/puzzles/singleton_top_layer_v1_1.py), etc
 
@@ -28,6 +29,7 @@ To run a specific test from a file:
 `pytest puzzles_tests_py/tests/test_piggybank.py -k test_piggybank_contribution`
 
 To output stdout logs add the `-s` flag.
+To omit warnings add `--disable-warnings`.
 
 > `cdv tests` is not available unless you have installed `chia-dev-tools`
 

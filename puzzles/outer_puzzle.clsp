@@ -1,0 +1,21 @@
+;;; Example from here: https://docs.chia.net/guides/crash-course/inner-puzzles/
+(mod (PUBLIC_KEY INNER_PUZZLE inner_solution)
+  (include condition_codes.clib)
+  (include sha256tree.clib)
+
+  ; Assert the signature matches and append the conditions.
+  (defun calculate_output (PUBLIC_KEY inner_solution conditions)
+    (c
+      ; This condition asserts that the inner solution was signed by PUBLIC_KEY
+      (list AGG_SIG_ME PUBLIC_KEY (sha256tree inner_solution))
+      conditions
+    )
+  )
+
+  ; Pass the output of the inner puzzle to `calculate_output`.
+  (calculate_output 
+    PUBLIC_KEY 
+    inner_solution 
+    (a INNER_PUZZLE inner_solution) ; first executes the inner puzzle
+  )
+)
