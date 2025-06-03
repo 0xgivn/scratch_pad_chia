@@ -11,12 +11,13 @@ from chia.util.hash import std_hash
 from chia.consensus.default_constants import DEFAULT_CONSTANTS
 from cdv.test import setup as setup_test
 from cdv.test import Network, Wallet, CoinWrapper
+from chia_rs.sized_ints import uint64
 from chia_rs.sized_bytes import bytes32
 from chia_rs import G2Element
 from chia_rs import AugSchemeMPL, G1Element, G2Element, PrivateKey
 
 
-from .utils import load_clvm
+from .utils import load_clvm, dump_list
 
 # Follows example from here: https://docs.chia.net/guides/crash-course/inner-puzzles/
 # To run: pytest puzzles_tests_py/tests/test_inner_puzzle.py -k test_inner_puzzle -s --disable-warnings
@@ -108,9 +109,45 @@ class TestInnerPuzzle:
     for _ in range(REQUIRED_BLOCKS):
       await network.farm_block(farmer=bob) 
 
-    # if we let bob try to provide the solution, an assertion will fail
+    # its not possible for bob to provide the solution with puzzle's coin
     # spend_result = await bob.spend_coin(outer_puzzle_coin, pushtx=True, args=solution)
     # print(f'spend_result: {spend_result.__dict__}')
+
+    # bob donates to outer_puzzle
+    BOBS_FUNDING: uint64 = uint64(100)
+    bobs_coin: CoinWrapper | None = await bob.choose_coin(BOBS_FUNDING)
+    assert bobs_coin is not None
+
+    bobs_spend = await bob.spend_coin(
+        bobs_coin,
+        pushtx=True,
+        amt=BOBS_FUNDING, 
+        custom_conditions=[
+          [ConditionOpcode.CREATE_COIN, outer_puzzle_program.get_tree_hash(), BOBS_FUNDING]
+        ]
+      )
+    print(f'\nbobs_spend to outer_puzzle: {bobs_spend.__dict__}')
+
+    # fetch coins for outer_puzzle
+    records = await network.sim_client.get_coin_records_by_puzzle_hash(outer_puzzle_program.get_tree_hash())
+    print(f'\ncoin records of outer_puzzle_program hash')
+    print(f'{dump_list(records)}')
+
+    # Bob spending the coins he just sent to the outer_puzzle - not possible
+    # puzzle_bob_coin = CoinWrapper(bob.puzzle_hash, BOBS_FUNDING, outer_puzzle_program)
+    # spend_result = await bob.spend_coin(puzzle_bob_coin, pushtx=True, args=Program.to([[[[ConditionOpcode.CREATE_COIN, bob.puzzle_hash, BOBS_FUNDING]]]]))
+    # print(f'spend_result: {spend_result.__dict__}')
+
+    # Bob tries to provide a signed solution to the puzzle and send himself back the donated amount
+    # outer_puzzle pub key assertion fails
+    spend_result = await bob.spend_coin(
+      await bob.choose_coin(0), 
+      pushtx=True, 
+      args=Program.to([[[[ConditionOpcode.CREATE_COIN, bob.puzzle_hash, BOBS_FUNDING]]]])
+    )
+    print(f'\nbob tries to supply solution: {spend_result.__dict__}')
+    assert "error" in spend_result.__dict__
+    assert "GENERATOR_RUNTIME_ERROR" in spend_result.__dict__['error']
 
     spend_result = await alice.spend_coin(outer_puzzle_coin, pushtx=True, args=solution)
     assert spend_result.__dict__['error'] == None
