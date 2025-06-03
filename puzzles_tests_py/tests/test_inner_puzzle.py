@@ -33,7 +33,7 @@ class TestInnerPuzzle:
   async def test_inner_puzzle(self, setup):
     network: Network
     alice: Wallet
-    network, alice, _ = setup
+    network, alice, bob = setup
     
     await network.farm_block(farmer=alice)
 
@@ -104,10 +104,13 @@ class TestInnerPuzzle:
     assert "error" in spend_result.__dict__
     assert "ASSERT_HEIGHT_RELATIVE_FAILED" in spend_result.__dict__['error']
 
-    
+    # pass the time
     for _ in range(REQUIRED_BLOCKS):
-      await network.farm_block()
-      
+      await network.farm_block(farmer=bob) 
+
+    # if we let bob try to provide the solution, an assertion will fail
+    # spend_result = await bob.spend_coin(outer_puzzle_coin, pushtx=True, args=solution)
+    # print(f'spend_result: {spend_result.__dict__}')
 
     spend_result = await alice.spend_coin(outer_puzzle_coin, pushtx=True, args=solution)
     assert spend_result.__dict__['error'] == None
