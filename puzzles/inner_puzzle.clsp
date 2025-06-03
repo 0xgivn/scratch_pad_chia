@@ -1,0 +1,8 @@
+(mod (REQUIRED_BLOCKS conditions)
+  (include condition_codes.clib)
+
+  (c 
+    (list ASSERT_HEIGHT_RELATIVE REQUIRED_BLOCKS)
+    conditions
+  )
+)
