@@ -187,7 +187,7 @@ class TestStandardTransaction:
       contribution_spend = await bob.spend_coin(
         contribution_coin,
         pushtx=False,
-        amt=(contribution_coin.amount + BOB_STEAL_AMOUNT), 
+        amt=(contribution_coin.amount - BOB_STEAL_AMOUNT), 
         custom_conditions=[
           # conditions emitted when supplying coins, order matters
           # this is like asserting for events
