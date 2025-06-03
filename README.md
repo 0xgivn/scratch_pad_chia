@@ -1,9 +1,10 @@
-This repo is used to research and test chialisp code.
+This repo is used to research and test chialisp code. [Overview](https://www.youtube.com/watch?v=lh9spX6Qv8I) of the coin system, statefulness, puzzles.
 
 Examples are from:
 - [Chia Network playlist](https://www.youtube.com/playlist?list=PLmnzWPUjpmaGzFNq2PeMljHNrXGwj2TDY)
 - [chia_puzzles](https://github.com/Chia-Network/chia_puzzles)
 - [Password Puzzle](https://chialisp.com/chialisp-first-smart-coin/) - first smart coin
+- [Inner Puzzles](https://docs.chia.net/guides/crash-course/inner-puzzles/)
 - [Minimal smart coin example on Chia blockchain](https://gist.github.com/trepca/d6a0d7f761de7459643422eb73c435e6)
 - [Usage of primitives](https://github.com/Chia-Network/chia-blockchain/tree/main/chia/wallet/puzzles) in python - [singleton](https://github.com/Chia-Network/chia-blockchain/blob/main/chia/wallet/puzzles/singleton_top_layer_v1_1.py), etc
 
