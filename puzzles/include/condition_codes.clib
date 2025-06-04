@@ -15,7 +15,7 @@
   ;
 
   (defconstant AGG_SIG_UNSAFE 49)
-  (defconstant AGG_SIG_ME 50)
+  (defconstant AGG_SIG_ME 50) ; aggregate signature - (pub_key, msg)
 
   ; the conditions below reserve coin amounts and have to be accounted for in output totals
 
