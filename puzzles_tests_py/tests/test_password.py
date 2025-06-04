@@ -15,6 +15,8 @@ from chia.types.blockchain_format.program import Program
 
 from .utils import load_clvm
 
+# To run: pytest puzzles_tests_py/tests/test_password.py -k test_password_puzzle_no_condition -s --disable-warnings
+# To run: pytest puzzles_tests_py/tests/test_password.py -k test_password_send_to_bob -s --disable-warnings
 class TestPasswordPuzzle:
 
   @pytest_asyncio.fixture(scope="function")
@@ -25,7 +27,7 @@ class TestPasswordPuzzle:
 
   
   @pytest.mark.asyncio
-  async def test_password_puzzle(self, setup):
+  async def test_password_puzzle_no_condition(self, setup):
     network: Network
     alice: Wallet
     network, alice, _ = setup
@@ -49,7 +51,7 @@ class TestPasswordPuzzle:
     assert password_coin is not None
     assert alice.balance() == old_balance - LOCK_AMOUNT
 
-    # The password puzzle contains this coin
+    # The password coin contains the password puzzle
     print(f'password_coin.puzzle_hash: {password_coin.puzzle_hash}')
     print(f'password_coin.amount: {password_coin.amount}')
     
@@ -57,14 +59,66 @@ class TestPasswordPuzzle:
     bundle = await alice.spend_coin(
       password_coin, 
       pushtx=False,
-      args=Program.to(["hello", []])
+      args=Program.to(["hello", []]) # ??? who owns the coins if no condition is provided? farmer can get them?
     )
     
     # coins are removed from the puzzle program
     result = await network.push_tx(SpendBundle.aggregate([bundle])) 
 
     print(f"result: {result}")
+    # the coins in password puzzle are not in its hash or in alice's balance
     assert old_balance == alice.balance() + LOCK_AMOUNT
+
+    password_puzzle_coins = await network.sim_client.get_coin_records_by_puzzle_hash(password_hash)
+    print(f"password puzzle coins: {password_puzzle_coins}")
+    assert len(password_puzzle_coins) == 0    
+
+  # Alice answers correct password and adds a condition which send the coin to Bob
+  @pytest.mark.asyncio
+  async def test_password_send_to_bob(self, setup):
+    network: Network
+    alice: Wallet
+    bob: Wallet
+    network, alice, bob = setup
+    print(f"\nalice's ph: {alice.puzzle_hash}")
+    print(f"bob's ph: {bob.puzzle_hash}")
+    
+    await network.farm_block(farmer=alice)
+
+    password_hash = std_hash(b"hello")
+    
+    PASSWORD_MOD = load_clvm("password")
+    program = PASSWORD_MOD.curry(password_hash)
+    puzzle_hash = program.get_tree_hash()
+    print(f"password ph: {puzzle_hash}")
+    LOCK_AMOUNT = 1_000
+
+    # now alice will spend some coins to turn it to password locked coin
+    alice_old_balance = alice.balance()
+    bob_old_balance = bob.balance()
+    
+    password_coin: CoinWrapper | None = await alice.launch_smart_coin(program, amt=LOCK_AMOUNT)
+    assert password_coin is not None
+    assert alice.balance() == alice_old_balance - LOCK_AMOUNT
+
+    # alice provides a solution to the puzzle
+    bundle = await alice.spend_coin(
+      password_coin, 
+      pushtx=False,
+      args=Program.to([
+        "hello", 
+        [
+          [ConditionOpcode.CREATE_COIN, bob.puzzle_hash, LOCK_AMOUNT],
+        ]
+      ])
+    )
+    
+    # coins are removed from the puzzle program
+    result = await network.push_tx(SpendBundle.aggregate([bundle])) 
+
+    print(f"result: {result}")
+    assert alice_old_balance - LOCK_AMOUNT == alice.balance() # alice's balance stays the same
+    assert bob_old_balance + LOCK_AMOUNT == bob.balance() # bob received the coin after password unlock
 
 
 
