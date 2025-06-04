@@ -1,5 +1,5 @@
-;;; When this puzzle is deployed, it contains 1 mojo
-;;; When coins are sent do it it will contain 1 + new_amount
+;;; When this puzzle is deployed, it contains at least 1 mojo - N
+;;; When coins are sent do it it will contain N + new_amount
 (mod (
   TARGET_AMOUNT 
   CASH_OUT_PUZZLE_HASH
@@ -22,9 +22,9 @@
 
   (defun recreate_self (my_amount new_amount my_puzzlehash)
     (list
-      (list CREATE_COIN my_puzzlehash new_amount)
-      (list ASSERT_MY_AMOUNT my_amount)
-      (list ASSERT_MY_PUZZLEHASH my_puzzlehash)
+      (list CREATE_COIN my_puzzlehash new_amount) ; new_amount coin being spent is assigned piggtbank's ph
+      (list ASSERT_MY_AMOUNT my_amount)           ; assert my_amount was spent
+      (list ASSERT_MY_PUZZLEHASH my_puzzlehash)   ; ensures the coin being spent is with the original ph, necessary so CREATE_COIN assigns the correct ph for new_amount
       (list CREATE_COIN_ANNOUNCEMENT new_amount)
     )
   )

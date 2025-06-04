@@ -2,13 +2,16 @@
 
 (
 
+  ;;; to calc coin id use coinid operator - https://github.com/Chia-Network/chips/blob/main/CHIPs/chip-0011.md#coinid
+  ;;; (coinid parent-id puzzle-hash amount)
+
   ; Unavailable until after 2.0 hard fork
   (defconstant AGG_SIG_PARENT 43)
   (defconstant AGG_SIG_PUZZLE 44)
   (defconstant AGG_SIG_AMOUNT 45)
   (defconstant AGG_SIG_PUZZLE_AMOUNT 46)
   (defconstant AGG_SIG_PARENT_AMOUNT 47)
-  (defconstant AGG_SIG_PARENT_PUZZLE 48)
+  (defconstant AGG_SIG_PARENT_PUZZLE 48) ; https://github.com/Chia-Network/chips/blob/main/CHIPs/chip-0011.md#agg_sig_parent_puzzle
   ;
 
   (defconstant AGG_SIG_UNSAFE 49)

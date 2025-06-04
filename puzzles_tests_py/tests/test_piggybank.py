@@ -17,6 +17,7 @@ from .piggybank_drivers import (
 from cdv.test import setup as setup_test
 from cdv.test import Network, Wallet, CoinWrapper
 
+# Test follows this example: https://www.youtube.com/watch?v=9tvcZrknc7I&list=PLmnzWPUjpmaGzFNq2PeMljHNrXGwj2TDY&index=7
 class TestStandardTransaction:
 
   @pytest_asyncio.fixture(scope="function")
