@@ -42,38 +42,38 @@ class TestPasswordPuzzle:
     LOCK_AMOUNT = 1_000
 
     # now alice will spend some coins to turn it to password locked coin
-    old_balance = alice.balance()
-    print(f'Alice\'s starting balance {old_balance}')
+    alice_start_balance = alice.balance()
+    print(f'Alice\'s starting balance {alice_start_balance}')
     print(f'Password puzzle hash: {puzzle_hash}')
     
     print(f'--- Deploying the password puzzle ---')
     password_coin: CoinWrapper | None = await alice.launch_smart_coin(program, amt=LOCK_AMOUNT)
     assert password_coin is not None
-    assert alice.balance() == old_balance - LOCK_AMOUNT
+    assert alice.balance() == alice_start_balance - LOCK_AMOUNT
 
     # The password coin contains the password puzzle
     print(f'password_coin.puzzle_hash: {password_coin.puzzle_hash}')
     print(f'password_coin.amount: {password_coin.amount}')
     
-    # alice provides a solution to the puzzle
+    # alice provides correct solution to the puzzle
     bundle = await alice.spend_coin(
       password_coin, 
       pushtx=False,
-      args=Program.to(["hello", []]) # ??? who owns the coins if no condition is provided? farmer can get them?
+      args=Program.to(["hello", []]) # coins are sent to ph, no conditions so coins are burned
     )
     
-    # coins are removed from the puzzle program
     result = await network.push_tx(SpendBundle.aggregate([bundle])) 
 
     print(f"result: {result}")
-    # the coins in password puzzle are not in its hash or in alice's balance
-    assert old_balance == alice.balance() + LOCK_AMOUNT
+    # the coins are no longer in alice's balance
+    assert alice_start_balance - LOCK_AMOUNT == alice.balance()
 
-    password_puzzle_coins = await network.sim_client.get_coin_records_by_puzzle_hash(password_hash)
+    # the coins aren't in the password ph as well (they are spent)
+    password_puzzle_coins = await network.sim_client.get_coin_records_by_puzzle_hash(puzzle_hash, include_spent_coins=False)
     print(f"password puzzle coins: {password_puzzle_coins}")
-    assert len(password_puzzle_coins) == 0    
+    assert len(password_puzzle_coins) == 0
 
-  # Alice answers correct password and adds a condition which send the coin to Bob
+  # Alice answers correct password and adds a condition which sends the coin to Bob
   @pytest.mark.asyncio
   async def test_password_send_to_bob(self, setup):
     network: Network
@@ -94,12 +94,15 @@ class TestPasswordPuzzle:
     LOCK_AMOUNT = 1_000
 
     # now alice will spend some coins to turn it to password locked coin
-    alice_old_balance = alice.balance()
-    bob_old_balance = bob.balance()
+    alice_start_balance = alice.balance()
+    bob_start_balance = bob.balance()
+    print("")
+    print(f"alice_start_balance: {alice_start_balance}")
+    print(f"bob_start_balance: {bob_start_balance}")
     
     password_coin: CoinWrapper | None = await alice.launch_smart_coin(program, amt=LOCK_AMOUNT)
     assert password_coin is not None
-    assert alice.balance() == alice_old_balance - LOCK_AMOUNT
+    assert alice.balance() == alice_start_balance - LOCK_AMOUNT
 
     # alice provides a solution to the puzzle
     bundle = await alice.spend_coin(
@@ -117,8 +120,20 @@ class TestPasswordPuzzle:
     result = await network.push_tx(SpendBundle.aggregate([bundle])) 
 
     print(f"result: {result}")
-    assert alice_old_balance - LOCK_AMOUNT == alice.balance() # alice's balance stays the same
-    assert bob_old_balance + LOCK_AMOUNT == bob.balance() # bob received the coin after password unlock
+    assert alice_start_balance - LOCK_AMOUNT == alice.balance() # alice's balance stays the same
+    assert bob_start_balance + LOCK_AMOUNT == bob.balance() # bob received the coin after password unlock
+
+    # some more queries
+    password_puzzle_coins = await network.sim_client.get_coin_records_by_puzzle_hash(puzzle_hash, include_spent_coins=False)
+    print("")
+    print(f"password puzzle coins: {password_puzzle_coins}")
+    assert len(password_puzzle_coins) == 0
+
+    bobs_puzzle_coins = await network.sim_client.get_coin_records_by_puzzle_hash(bob.puzzle_hash, include_spent_coins=False)
+    print("")
+    print(f"bobs_puzzle_coins: {bobs_puzzle_coins}")
+    assert len(bobs_puzzle_coins) == 1
+    assert bobs_puzzle_coins[0].coin.amount == LOCK_AMOUNT
 
 
 
