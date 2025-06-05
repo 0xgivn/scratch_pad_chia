@@ -29,6 +29,7 @@ from .utils import load_clvm, dump_list
 
 # Follows example from here: https://chialisp.com/singletons
 # To run: pytest puzzles_tests_py/tests/test_singleton.py -k test_singleton_simple -s --disable-warnings
+# To run: pytest puzzles_tests_py/tests/test_singleton.py -k test_singleton_state_update -s --disable-warnings
 class TestSingleton:
 
   @pytest_asyncio.fixture(scope='function')
@@ -89,6 +90,7 @@ class TestSingleton:
 
     # Push the transaction to create the singleton
     result = await network.push_tx(combined_spend)
+    print()
     print(f"Launch result: {result}")
     
     # block is farmed in push_tx
@@ -181,4 +183,153 @@ class TestSingleton:
     assert len(unspent_singletons) == 1  # New one created
     assert unspent_singletons[0].coin == new_singleton_coin
 
-  
+  # e2e example showing how singleton state updates while maintaining identity
+  @pytest.mark.asyncio
+  async def test_singleton_state_update(self, setup):
+    network: Network
+    alice: Wallet
+    bob: Wallet # we use bob's balance as a tracker that we successfully unlocked password puzzle
+    network, alice, bob = setup
+    
+    await network.farm_block(farmer=alice)
+
+    PASSWORD_MOD = load_clvm('password')
+    AMOUNT = uint64(1001)
+    
+    # ==============================================
+    # STEP 1: Create singleton with password "hello"
+    # ==============================================
+    print("\n=== STEP 1: Creating singleton with password 'hello' ===")
+    
+    password1 = "hello"
+    password1_hash = std_hash(password1.encode())
+    inner_puzzle1 = PASSWORD_MOD.curry(password1_hash)
+    
+    launch_coin = await alice.choose_coin(AMOUNT)
+    assert launch_coin is not None
+    
+    conditions, launcher_coinsol = launch_conditions_and_coinsol(
+        launch_coin.coin, inner_puzzle1, [], AMOUNT
+    )
+    
+    launch_spend = await alice.spend_coin(launch_coin, pushtx=False, custom_conditions=conditions)
+    combined_spend = SpendBundle.aggregate([launch_spend, SpendBundle([launcher_coinsol], G2Element())])
+    await network.push_tx(combined_spend)
+    
+    # Calculate singleton identity (THIS NEVER CHANGES)
+    launcher_coin = Coin(launch_coin.coin.name(), SINGLETON_LAUNCHER_HASH, AMOUNT)
+    LAUNCHER_ID = launcher_coin.name()  # ← This is the persistent identity!
+    
+    print(f'🔑 Singleton Identity LAUNCHER_ID: {LAUNCHER_ID} \n\t   ---> this never changes, it is a parent coin id')
+    print(f"📝 Current password: '{password1}'")
+    
+    # Current singleton coin with password1
+    singleton_puzzle1 = puzzle_for_singleton(LAUNCHER_ID, inner_puzzle1)
+    singleton_coin1 = Coin(LAUNCHER_ID, singleton_puzzle1.get_tree_hash(), AMOUNT)
+    print(f"📍 Singleton ph 1: {singleton_puzzle1.get_tree_hash()}")
+    
+    # ==============================================
+    # STEP 2: Use singleton with password "hello" (normal usage)
+    # ==============================================
+    print("\n=== STEP 2: Using singleton with password 'hello' ===")
+    
+    send_amount1 = 100
+    continue_amount1 = AMOUNT - send_amount1
+    
+    lineage_proof1 = lineage_proof_for_coinsol(launcher_coinsol)
+    inner_solution1 = Program.to([
+      password1,  # Use current password to unlock
+      [
+        [ConditionOpcode.CREATE_COIN, bob.puzzle_hash, send_amount1],
+        [ConditionOpcode.CREATE_COIN, inner_puzzle1.get_tree_hash(), continue_amount1]  # Continue with SAME password
+      ]
+    ])
+    
+    singleton_solution1 = solution_for_singleton(lineage_proof1, AMOUNT, inner_solution1)
+    singleton_spend1 = make_spend(singleton_coin1, singleton_puzzle1, singleton_solution1)
+    
+    await network.push_tx(SpendBundle([singleton_spend1], G2Element()))
+    
+    # New singleton coin with same password (SAME LaunchID, SAME inner puzzle)
+    singleton_coin1b = Coin(singleton_coin1.name(), singleton_puzzle1.get_tree_hash(), uint64(continue_amount1))
+    
+    print(f"✅ Spent singleton using password '{password1}'")
+    print(f"💰 Alice received: {send_amount1} mojos")
+    print(f"🔄 Singleton continues with same password, amount: {continue_amount1}")
+    print(f"🔄 singleton_coin1b: {singleton_coin1b.to_json_dict()}")
+    assert bob.balance() == send_amount1
+    
+    
+    # ==============================================
+    # STEP 3: Use singleton again BUT change password to "world"
+    # ==============================================
+    print("\n=== STEP 3: Using singleton again, but changing password to 'world' ===")
+    
+    password2 = "world"
+    password2_hash = std_hash(password2.encode())
+    inner_puzzle2 = PASSWORD_MOD.curry(password2_hash)  # ← NEW inner puzzle!
+    
+    print(f"📝 Changing password from '{password1}' to '{password2}'")
+    
+    send_amount2 = 50
+    new_amount = continue_amount1 - send_amount2
+    
+    lineage_proof2 = lineage_proof_for_coinsol(singleton_spend1)
+    inner_solution2 = Program.to([
+        password1,  # Use OLD password to unlock
+        [
+            [ConditionOpcode.CREATE_COIN, bob.puzzle_hash, send_amount2],
+            [ConditionOpcode.CREATE_COIN, inner_puzzle2.get_tree_hash(), new_amount]  # ← NEW inner puzzle!
+        ]
+    ])
+    
+    singleton_solution2 = solution_for_singleton(lineage_proof2, uint64(continue_amount1), inner_solution2)
+    singleton_spend2 = make_spend(singleton_coin1b, singleton_puzzle1, singleton_solution2)
+    
+    await network.push_tx(SpendBundle([singleton_spend2], G2Element()))
+    
+    # New singleton coin with password2 (SAME LaunchID, DIFFERENT inner puzzle)
+    singleton_puzzle2 = puzzle_for_singleton(LAUNCHER_ID, inner_puzzle2)  # ← SAME LaunchID!
+    singleton_coin2 = Coin(singleton_coin1b.name(), singleton_puzzle2.get_tree_hash(), uint64(new_amount))
+    
+    print(f"✅ Password updated successfully")
+    print(f"🔑 Singleton Id (LaunchID): {LAUNCHER_ID} \n\t ^^^^^ all descend from here")  # ← UNCHANGED!
+    print(f"📍 New singleton address: {singleton_puzzle2.get_tree_hash()}")  # ← CHANGED!
+    assert bob.balance() == send_amount1 + send_amount2
+    
+    # ==============================================
+    # STEP 4: Use singleton with NEW password "world" (same usage pattern)
+    # ==============================================
+    print("\n=== STEP 4: Using singleton with NEW password 'world' ===")
+    
+    send_amount3 = 50
+    final_amount = new_amount - send_amount3
+    
+    lineage_proof3 = lineage_proof_for_coinsol(singleton_spend2)
+    inner_solution3 = Program.to([
+        password2,  # Use NEW password to unlock, old won't work
+        [
+            [ConditionOpcode.CREATE_COIN, bob.puzzle_hash, send_amount3],
+            [ConditionOpcode.CREATE_COIN, inner_puzzle2.get_tree_hash(), final_amount]  # Continue with NEW password
+        ]
+    ])
+    
+    singleton_solution3 = solution_for_singleton(lineage_proof3, uint64(new_amount), inner_solution3)
+    singleton_spend3 = make_spend(singleton_coin2, singleton_puzzle2, singleton_solution3)
+    
+    result = await network.push_tx(SpendBundle([singleton_spend3], G2Element()))
+    print(f"✅ Spent singleton using NEW password '{password2}'")
+    print(f"💰 Bob received: {send_amount3} mojos")
+    print(f"🔄 Singleton continues with new password, amount: {final_amount}")
+    
+    final_singleton_coin = Coin(singleton_coin2.name(), singleton_puzzle2.get_tree_hash(), uint64(final_amount))
+    print(f"📍 Final singleton address: {singleton_puzzle2.get_tree_hash()}")
+    assert bob.balance() == send_amount1 + send_amount2 + send_amount3
+    
+    print("\n🎯 RECAP:")
+    print(f"   • Singleton Identity NEVER changes: {LAUNCHER_ID}")
+    print(f"   • Usage pattern stays the same: know current password + use same API")
+    print(f"   • State evolution happens through CREATE_COIN conditions")
+    print(f"   • External parties need to track current state to interact")
+    print(f"   • Each spend creates lineage for the next spend")
+    
