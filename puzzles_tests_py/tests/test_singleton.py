@@ -16,11 +16,11 @@ from chia_rs.sized_bytes import bytes32
 from chia_rs import G2Element
 from chia_rs import AugSchemeMPL, G1Element, G2Element, PrivateKey
 from chia.wallet.puzzles.singleton_top_layer_v1_1 import (
-    launch_conditions_and_coinsol,
-    puzzle_for_singleton,
-    solution_for_singleton,
-    lineage_proof_for_coinsol,
-    SINGLETON_LAUNCHER_HASH
+  launch_conditions_and_coinsol,
+  puzzle_for_singleton,
+  solution_for_singleton,
+  lineage_proof_for_coinsol,
+  SINGLETON_LAUNCHER_HASH
 ) # very important to import the proper version, omitting _v1_1 will import different impl and require different solutions
 from chia.types.coin_spend import make_spend
 
@@ -69,19 +69,19 @@ class TestSingleton:
     # Get launch conditions and launcher coin spend
     # singleton gets wrapped in launcher here
     conditions, launcher_coinsol = launch_conditions_and_coinsol(
-        launch_coin.coin,
-        password_puzzle,
-        [],  # comment - empty list
-        AMOUNT
+      launch_coin.coin,
+      password_puzzle,
+      [],  # comment - empty list
+      AMOUNT
     )
     
     print(f"Launch conditions: {conditions}")
 
     # Spend the launch coin to create launcher
     launch_spend = await alice.spend_coin(
-        launch_coin,
-        pushtx=False,
-        custom_conditions=conditions
+      launch_coin,
+      pushtx=False,
+      custom_conditions=conditions
     )
 
     # Combine with launcher spend
@@ -130,11 +130,11 @@ class TestSingleton:
     new_singleton_amount = AMOUNT - alice_amount  # Rest continues as singleton
     
     inner_solution = Program.to([
-        password,
-        [
-            [ConditionOpcode.CREATE_COIN, password_puzzle.get_tree_hash(), new_singleton_amount], # Recreate singleton from the inner puzzle hash
-            [ConditionOpcode.CREATE_COIN, alice.puzzle_hash, alice_amount],                       # alice sends the amount back to herself
-        ]
+      password,
+      [
+        [ConditionOpcode.CREATE_COIN, password_puzzle.get_tree_hash(), new_singleton_amount], # Recreate singleton from the inner puzzle hash
+        [ConditionOpcode.CREATE_COIN, alice.puzzle_hash, alice_amount],                       # alice sends the amount back to herself
+      ]
     ])
     
     print()
@@ -143,9 +143,9 @@ class TestSingleton:
     
     # Solution for singleton
     singleton_solution = solution_for_singleton(
-        lineage_proof,
-        AMOUNT,
-        inner_solution
+      lineage_proof,
+      AMOUNT,
+      inner_solution
     )
     
     print()
@@ -153,9 +153,9 @@ class TestSingleton:
 
     # Spend the singleton
     singleton_spend = make_spend(
-        singleton_coin,
-        singleton_puzzle,
-        singleton_solution
+      singleton_coin,
+      singleton_puzzle,
+      singleton_solution
     )
     
     alice_balance_previous = alice.balance() # update the balance
@@ -180,5 +180,5 @@ class TestSingleton:
     assert len(spent_singletons) == 1  # Original spent
     assert len(unspent_singletons) == 1  # New one created
     assert unspent_singletons[0].coin == new_singleton_coin
-    
-    
+
+  

@@ -109,7 +109,7 @@ class TestPasswordPuzzle:
       password_coin, 
       pushtx=False,
       args=Program.to([
-        "hello", 
+        "hello",
         [
           [ConditionOpcode.CREATE_COIN, bob.puzzle_hash, LOCK_AMOUNT],
         ]
