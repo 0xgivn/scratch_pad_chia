@@ -196,6 +196,8 @@ class TestSingleton:
     PASSWORD_MOD = load_clvm('password')
     AMOUNT = uint64(1001)
     
+    print("\n\n**************** REAL-WORLD PASSWORD PUZZLE EXAMPLE ****************")
+    
     # ==============================================
     # STEP 1: Create singleton with password "hello"
     # ==============================================
@@ -328,8 +330,10 @@ class TestSingleton:
     
     print("\n🎯 RECAP:")
     print(f"   • Singleton Identity NEVER changes: {LAUNCHER_ID}")
-    print(f"   • Usage pattern stays the same: know current password + use same API")
+    print(f"   • When state changes the singleton ph also changes, but through the lineage we prove its the same singleton")
     print(f"   • State evolution happens through CREATE_COIN conditions")
+    print(f"   • State change frontrun is impossible because spend bundle will revert")
+    print(f"   • Usage pattern stays the same: know current password + use same API")
     print(f"   • External parties need to track current state to interact")
     print(f"   • Each spend creates lineage for the next spend")
     
