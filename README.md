@@ -11,11 +11,11 @@ More info:
 - [Chia Coloured Coins: Technical Guide](https://www.youtube.com/watch?v=17pa2t_FQQM&ab_channel=MattHoward), [part 2](https://www.youtube.com/watch?v=L1umdr-PjJE&ab_channel=MattHoward)
 - [Singletons](https://chialisp.com/singletons/)
   - You use singletons when you need "this specific thing" rather than "some amount of this fungible asset".
+  - [How singletons work](https://www.youtube.com/watch?v=kA0l9n5SEI8&list=PLmnzWPUjpmaHSS_F2VPyeK35iTMlUmhSk&index=11&ab_channel=ChiaNetwork) 
 - [High Level Tips 1 - Managing State, Coin Creation, Announcements](https://www.youtube.com/watch?v=lDXB4NlbQ-E), [part 2](https://www.youtube.com/watch?v=T4noZyNJkFA), [part 3](https://www.youtube.com/watch?v=54heTeWq9xQ)
 - [Chia improvement proposals](https://github.com/Chia-Network/chips/tree/main/CHIPs) - notable ones: 0011, 0025
 - [Hack](https://youtu.be/54heTeWq9xQ?t=737) you can do to output the condition literals of a puzzle
 - [Issuing a CAT](https://www.youtube.com/watch?v=yxagP_VC8BE&list=PLmnzWPUjpmaHSS_F2VPyeK35iTMlUmhSk&index=2&ab_channel=ChiaNetwork)
-- [How singletons work](https://www.youtube.com/watch?v=kA0l9n5SEI8&list=PLmnzWPUjpmaHSS_F2VPyeK35iTMlUmhSk&index=11&ab_channel=ChiaNetwork) 
 - [Usage of primitives](https://github.com/Chia-Network/chia-blockchain/tree/main/chia/wallet/puzzles) in python - [singleton](https://github.com/Chia-Network/chia-blockchain/blob/main/chia/wallet/puzzles/singleton_top_layer_v1_1.py), etc
 
 # Setup

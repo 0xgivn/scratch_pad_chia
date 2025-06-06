@@ -336,4 +336,6 @@ class TestSingleton:
     print(f"   • Usage pattern stays the same: know current password + use same API")
     print(f"   • External parties need to track current state to interact")
     print(f"   • Each spend creates lineage for the next spend")
+    print(f"   • If you know the launcher id you can follow it and find the current state of the singleton")
+    print(f"   • Drawback: only one state update TX can be executed per block, the rest will fail as their data will no longer be valid")
     
