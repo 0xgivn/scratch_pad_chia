@@ -12,6 +12,7 @@ More info:
 - [Singletons](https://chialisp.com/singletons/)
   - You use singletons when you need "this specific thing" rather than "some amount of this fungible asset".
   - [How singletons work](https://www.youtube.com/watch?v=kA0l9n5SEI8&list=PLmnzWPUjpmaHSS_F2VPyeK35iTMlUmhSk&index=11&ab_channel=ChiaNetwork) 
+  - They can be implemented in various ways, `singleton_top_layer_v1_1` is a general template. As a rule of thumb: if it starts with a launcher ID and checks its lineage, it is a singleton.
 - [High Level Tips 1 - Managing State, Coin Creation, Announcements](https://www.youtube.com/watch?v=lDXB4NlbQ-E), [part 2](https://www.youtube.com/watch?v=T4noZyNJkFA), [part 3](https://www.youtube.com/watch?v=54heTeWq9xQ)
 - [Chia improvement proposals](https://github.com/Chia-Network/chips/tree/main/CHIPs) - notable ones: 0011, 0025
 - [Hack](https://youtu.be/54heTeWq9xQ?t=737) you can do to output the condition literals of a puzzle
